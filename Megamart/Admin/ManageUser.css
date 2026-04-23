@@ -1,0 +1,95 @@
+.container
+{
+    padding: 20px;
+}
+
+
+.simple-table {
+  border-collapse: collapse;
+  width: 90%;
+  margin: 16px auto 0 auto;
+  background: none;
+  box-shadow: none;
+}
+.simple-table th, .simple-table td {
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: center;
+  background: none;
+  color: #000;
+}
+.simple-table th {
+  font-weight: bold;
+}
+.simple-table tr {
+  background: none;
+}
+.simple-table tr:nth-child(even) {
+  background: none;
+}
+
+button{
+    padding: 5px 10px;
+    margin: 3px;
+    cursor:pointer;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+.manage-user-loading,
+.manage-user-error,
+.manage-user-empty {
+  margin: 16px 0;
+}
+
+.manage-user-error {
+  color: #dc3545;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(245, 241, 241, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  min-width: 320px;
+  max-width: 90vw;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.modal-content label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
