@@ -18,8 +18,7 @@ const app = express();
 // Allow CORS from Vercel and localhost
 app.use(cors({
   origin: [
-    'https://megamart-frontend-uuyg.onrender.com',
-    'http://localhost:3000'
+    process.env.CLIENT_URL || "http://localhost:3000",
   ],
   credentials: true
 }));
