@@ -23,9 +23,9 @@ app.use("/api/cart", CartRouter);
 app.use("/api/orders", OrdersRouter);
 app.use("/api/payments", PaymentsRouter);
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/megamart1";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/megamart1";
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -289,6 +289,11 @@ app.delete("/api/users/:id", async (req, res) => {
     console.error(err);
     return res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Root route for health check or welcome message
+app.get('/', (req, res) => {
+  res.send('Backend server is running!');
 });
 
 const PORT = process.env.PORT || 3001;

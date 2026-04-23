@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_BASE_URL = String(
+  import.meta.env.VITE_API_BASE_URL || "https://megamart-backend-yj46.onrender.com"
+).replace(/\/$/, "");
+
+const apiUrl = (path) => `${BACKEND_BASE_URL}${path}`;
+
 // Razorpay script loader
 const loadRazorpay = () => {
   return new Promise((resolve) => {
@@ -53,7 +59,7 @@ const Payment = () => {
     if (method === "cod") {
       try {
         setIsPaying(true);
-        const res = await fetch("http://localhost:3001/api/orders", {
+        const res = await fetch(apiUrl("/api/orders"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -90,13 +96,13 @@ const Payment = () => {
         throw new Error("Razorpay SDK failed to load");
       }
 
-      const keyRes = await fetch("http://localhost:3001/api/payments/public-key");
+      const keyRes = await fetch(apiUrl("/api/payments/public-key"));
       const keyData = await keyRes.json().catch(() => ({}));
       if (!keyRes.ok || !keyData.success || !keyData.key) {
         throw new Error(keyData.error || "Razorpay key not available");
       }
 
-      const orderRes = await fetch("http://localhost:3001/api/payments/create-order", {
+      const orderRes = await fetch(apiUrl("/api/payments/create-order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: total }),
@@ -124,7 +130,7 @@ const Payment = () => {
         order_id: rpOrder.id,
         handler: async function (response) {
           try {
-            const verifyRes = await fetch("http://localhost:3001/api/payments/verify", {
+            const verifyRes = await fetch(apiUrl("/api/payments/verify"), {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -138,7 +144,7 @@ const Payment = () => {
               throw new Error(verifyData.error || "Payment verification failed");
             }
 
-            const placeRes = await fetch("http://localhost:3001/api/orders", {
+            const placeRes = await fetch(apiUrl("/api/orders"), {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
