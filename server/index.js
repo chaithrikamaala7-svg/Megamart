@@ -15,7 +15,15 @@ const OrdersRouter = require("./routes/orders");
 const PaymentsRouter = require("./routes/payments");
 
 const app = express();
-app.use(cors());
+// Allow CORS from Vercel and localhost
+app.use(cors({
+  origin: [
+    'https://megamart-frontend-yourvercelurl.vercel.app', // <-- Replace with your actual Vercel frontend URL
+    'http://localhost:3000',
+    'https://megamart-frontend-yourcustomdomain.com' // <-- Add your custom domain if any
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Cart and Orders API (must be after body parser)
