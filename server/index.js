@@ -18,9 +18,8 @@ const app = express();
 // Allow CORS from Vercel and localhost
 app.use(cors({
   origin: [
-    'https://megamart-1w9y5sv9t-chaithrikamm76-6650s-projects.vercel.app', // <-- Your actual Vercel frontend URL
+    'https://megamart-frontend-uuyg.onrender.com',
     'http://localhost:3000'
-    // Add more domains if needed
   ],
   credentials: true
 }));
@@ -92,13 +91,11 @@ app.post("/api/signup", async (req, res) => {
         const { password: _, ...safe } = user.toObject();
         return res.json({ success: true, user: safe });
     } 
-    
     catch (err) 
     {
         return res.status(500).json({ success: false, error: err.message });
     }
 });
-
 
 app.post("/api/login", async (req, res) => {
     try {
