@@ -18,9 +18,9 @@ const app = express();
 // Allow CORS from Vercel and localhost
 app.use(cors({
   origin: [
-    'https://megamart-frontend-yourvercelurl.vercel.app', // <-- Replace with your actual Vercel frontend URL
-    'http://localhost:3000',
-    'https://megamart-frontend-yourcustomdomain.com' // <-- Add your custom domain if any
+    'https://megamart-1w9y5sv9t-chaithrikamm76-6650s-projects.vercel.app', // <-- Your actual Vercel frontend URL
+    'http://localhost:3000'
+    // Add more domains if needed
   ],
   credentials: true
 }));
