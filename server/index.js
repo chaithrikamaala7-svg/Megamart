@@ -18,7 +18,7 @@ const app = express();
 // Allow CORS from Vercel and localhost
 app.use(cors({
   origin: [
-    process.env.CLIENT_URL || "http://localhost:3000",
+    process.env.CLIENT_URL ,
   ],
   credentials: true
 }));
@@ -29,7 +29,7 @@ app.use("/api/cart", CartRouter);
 app.use("/api/orders", OrdersRouter);
 app.use("/api/payments", PaymentsRouter);
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/megamart1";
+const MONGO_URI = process.env.MONGO_URI ;
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
