@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Login.css";
+import { apiUrl } from "./apiBase";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -22,7 +23,7 @@ function Signup() {
     try {
       setIsLoading(true);
       setMessage("");
-      const resp = await fetch("/api/signup", {
+      const resp = await fetch(apiUrl("/api/signup"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

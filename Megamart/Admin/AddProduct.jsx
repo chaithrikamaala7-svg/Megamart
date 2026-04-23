@@ -27,8 +27,10 @@ function AddProduct() {
         description: editingProduct.description || "",
       });
       if (editingProduct.imageUrl) {
+        // Use API_BASE_URL for image URLs
+        import { API_BASE_URL } from "../components/apiBase";
         const fullUrl = editingProduct.imageUrl.startsWith("/uploads")
-          ? `http://localhost:3001${editingProduct.imageUrl}`
+          ? `${API_BASE_URL}${editingProduct.imageUrl}`
           : editingProduct.imageUrl;
         setPreviewUrl(fullUrl);
       }
