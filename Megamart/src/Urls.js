@@ -1,2 +1,2 @@
-export const baseUrl = "https://megamart-backend-llxi.onrender.com";
+export const baseUrl = "https://megamart-backend-u21f.onrender.com";
 
