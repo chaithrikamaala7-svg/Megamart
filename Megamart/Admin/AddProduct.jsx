@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "../components/apiBase";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AddProduct.css";
 
@@ -28,7 +29,6 @@ function AddProduct() {
       });
       if (editingProduct.imageUrl) {
         // Use API_BASE_URL for image URLs
-        import { API_BASE_URL } from "../components/apiBase";
         const fullUrl = editingProduct.imageUrl.startsWith("/uploads")
           ? `${API_BASE_URL}${editingProduct.imageUrl}`
           : editingProduct.imageUrl;
