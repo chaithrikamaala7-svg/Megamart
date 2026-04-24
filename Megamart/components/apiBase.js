@@ -1,4 +1,4 @@
-import { baseUrl } from "./Urls";
+import { baseUrl } from "../src/Urls.js";
 
 export const API_BASE_URL = String(baseUrl || "http://localhost:3001").replace(/\/$/, "");
 
