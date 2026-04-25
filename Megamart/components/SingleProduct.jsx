@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCart } from "./CartContext";
 import "./SingleProduct.css";
+import { apiUrl, assetUrl } from "./apiBase";
 
 function SingleProduct() {
   const { productId } = useParams();
@@ -16,7 +17,7 @@ function SingleProduct() {
       try {
         setLoading(true);
         setError("");
-        const res = await fetch(`/api/products`);
+        const res = await fetch(apiUrl("/api/products"));
         if (!res.ok) throw new Error("Failed to load product");
         const data = await res.json();
         const found = Array.isArray(data) ? data.find((p) => (p._id || p.id) === productId) : null;
@@ -34,10 +35,7 @@ function SingleProduct() {
   if (error) return <div className="single-product-error">{error}</div>;
   if (!product) return <div className="single-product-notfound">Product not found.</div>;
 
-  const imageSrc =
-    product.imageUrl && product.imageUrl.startsWith("/uploads")
-      ? `http://localhost:3001${product.imageUrl}`
-      : product.imageUrl || "";
+  const imageSrc = assetUrl(product.imageUrl || "");
 
   return (
     <div className="single-product-modern-container">

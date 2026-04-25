@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, MapPin, User, Heart, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { apiUrl } from "./apiBase";
 
 const navItems = ["Men", "Women", "Kids", "Footwear", "Accessories", "Brands", "Shop Now"];
 
@@ -8,7 +9,7 @@ const Sheader = () => {
   const navigate = useNavigate();
   const handleShopNow = async () => {
     try {
-      const res = await fetch("/api/products");
+      const res = await fetch(apiUrl("/api/products"));
      
       const data = await res.json();
      

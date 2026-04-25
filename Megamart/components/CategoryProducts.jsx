@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./CategoryProducts.css";
+import { apiUrl, assetUrl } from "./apiBase";
 
 function CategoryProducts() {
   const { categoryId } = useParams();
@@ -29,7 +30,7 @@ function CategoryProducts() {
       try {
         setLoading(true);
         setError("");
-        const res = await fetch("/api/products");
+        const res = await fetch(apiUrl("/api/products"));
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to fetch products");
         const allProducts = Array.isArray(data) ? data : [];
@@ -55,9 +56,7 @@ function CategoryProducts() {
 
   function getImageUrl(imageUrl) {
     if (!imageUrl) return "/images/head.png";
-    if (imageUrl.startsWith("http")) return imageUrl;
-    if (imageUrl.startsWith("/uploads")) return `http://localhost:3001${imageUrl}`;
-    return imageUrl;
+    return assetUrl(imageUrl);
   }
 
   return (

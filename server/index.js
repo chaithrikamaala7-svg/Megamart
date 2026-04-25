@@ -15,13 +15,26 @@ const OrdersRouter = require("./routes/orders");
 const PaymentsRouter = require("./routes/payments");
 
 const app = express();
-// Allow CORS from Vercel and localhost
-app.use(cors({
-  origin: [
-    process.env.CLIENT_URL ,
-  ],
-  credentials: true
-}));
+// Allow requests from configured frontends and Vercel preview domains
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Cart and Orders API (must be after body parser)

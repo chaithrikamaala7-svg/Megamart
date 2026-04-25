@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./ManageUser.css";
+import { apiUrl } from "../components/apiBase";
 
 function ManageUser() {
   const [users, setUsers] = useState([]);
@@ -12,7 +13,7 @@ function ManageUser() {
     try {
       setLoading(true);
       setError("");
-      const res = await fetch("/api/users");
+      const res = await fetch(apiUrl("/api/users"));
       const text = await res.text();
       let data;
       try {
@@ -37,7 +38,7 @@ function ManageUser() {
   async function deleteUser(id) {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/users/${id}`), { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed");
       setUsers((prev) => prev.filter((u) => u._id !== id));
@@ -97,7 +98,7 @@ function ManageUser() {
         mobilenumber: editForm.mobilenumber,
       };
       if (editForm.password) payload.password = editForm.password;
-      const res = await fetch(`/api/users/${editingUser._id}`, {
+      const res = await fetch(apiUrl(`/api/users/${editingUser._id}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

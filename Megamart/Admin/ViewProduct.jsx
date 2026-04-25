@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ViewProduct.css";
+import { apiUrl, assetUrl } from "../components/apiBase";
 
 function ViewProduct() {
   const [products, setProducts] = useState([]);
@@ -14,7 +15,7 @@ function ViewProduct() {
       try {
         setLoading(true);
         setError("");
-        const res = await fetch("/api/products");
+        const res = await fetch(apiUrl("/api/products"));
         if (!res.ok) throw new Error("Failed to load products");
         const data = await res.json();
         setProducts(Array.isArray(data) ? data : []);
@@ -65,7 +66,7 @@ function ViewProduct() {
     if (!window.confirm("Delete this product?")) return;
     try {
       setDeletingId(id);
-      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/products/${id}`), { method: "DELETE" });
       if (!res.ok) {
         let message = "Failed to delete";
         try {
@@ -101,10 +102,7 @@ function ViewProduct() {
           {products.map((product) => {
             const id = product._id || product.id;
             const busy = deletingId === id;
-            const imageSrc =
-              product.imageUrl && product.imageUrl.startsWith("/uploads")
-                ? `http://localhost:3001${product.imageUrl}`
-                : product.imageUrl || "";
+            const imageSrc = assetUrl(product.imageUrl || "");
             return (
               <tr key={id}>
                 <td>

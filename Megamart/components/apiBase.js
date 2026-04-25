@@ -1,6 +1,12 @@
 import { baseUrl } from "../src/Urls.js";
 
-export const API_BASE_URL = String(baseUrl || "http://localhost:3001").replace(/\/$/, "");
+const configuredBase =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  baseUrl ||
+  "http://localhost:3001";
+
+export const API_BASE_URL = String(configuredBase).replace(/\/$/, "");
 
 export function apiUrl(path) {
   if (!path) return API_BASE_URL;

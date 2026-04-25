@@ -1,6 +1,7 @@
 import React from "react";
 import { useCart } from "./CartContext";
 import { useNavigate } from "react-router-dom";
+import { assetUrl } from "./apiBase";
 
 function Cart() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
@@ -19,10 +20,7 @@ function Cart() {
     <div className="cart-modern-outer">
       <div className="cart-modern-container">
         {cartItems.map((item) => {
-          const imageSrc =
-            item.imageUrl && item.imageUrl.startsWith("/uploads")
-              ? `http://localhost:3001${item.imageUrl}`
-              : item.imageUrl || item.image || "";
+          const imageSrc = assetUrl(item.imageUrl || item.image || "");
           return (
             <div className="cart-modern-box" key={item._id || item.id}>
               <div className="cart-modern-imagebox">

@@ -1,6 +1,7 @@
 import "./Header.css";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiUrl } from "./apiBase";
 
 function Header() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ function Header() {
   const handleShopNow = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/products");
+      const res = await fetch(apiUrl("/api/products"));
       const data = await res.json();
       const firstProduct = Array.isArray(data) && data.length > 0 ? data[0] : null;
       if (firstProduct?._id || firstProduct?.id) {

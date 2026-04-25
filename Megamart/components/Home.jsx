@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Home.css";
 import { Link } from "react-router-dom";
+import { apiUrl, assetUrl } from "./apiBase";
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,7 @@ function Home() {
       try {
         setLoading(true);
         setError("");
-        const res = await fetch("/api/products");
+        const res = await fetch(apiUrl("/api/products"));
         if (!res.ok) throw new Error("Failed to load products");
         const data = await res.json();
         setProducts(Array.isArray(data) ? data : []);
@@ -49,10 +50,7 @@ function Home() {
             <div className="product-grid">
               {products.slice(0, 6).map((product) => {
                 const id = product._id || product.id;
-                const imageSrc =
-                  product.imageUrl && product.imageUrl.startsWith("/uploads")
-                    ? `http://localhost:3001${product.imageUrl}`
-                    : product.imageUrl || "";
+                const imageSrc = assetUrl(product.imageUrl || "");
                 return (
                   <div key={id} className="product-card">
                     <div className="product-image-wrapper">
