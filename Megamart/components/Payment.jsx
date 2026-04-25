@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiUrl } from "./apiBase";
 
@@ -17,11 +17,11 @@ const loadRazorpay = () => {
   });
 };
 
-const Payment = () => {
+const Payment = ({ addressOverride = null, hideAddressCard = false, showCheckoutTitle = true }) => {
   const [selectedPayment, setSelectedPayment] = useState("");
   const [isPaying, setIsPaying] = useState(false);
   const [error, setError] = useState("");
-  const [address] = useState(() => {
+  const [savedAddress] = useState(() => {
     const saved = localStorage.getItem("checkout_address");
     return saved ? JSON.parse(saved) : { line1: "", city: "", pincode: "", state: "" };
   });
@@ -38,6 +38,10 @@ const Payment = () => {
   const customerMobile = user?.mobilenumber || "";
   const userId = user?._id || user?.id || "";
 
+  const address = useMemo(
+    () => addressOverride || savedAddress,
+    [addressOverride, savedAddress]
+  );
   const addressFilled = address.line1 && address.city && address.pincode && address.state;
 
   const handlePay = async (method) => {
@@ -221,15 +225,20 @@ const Payment = () => {
 
   return (
     <div className="payment-page">
-      <h2>Checkout</h2>
-      <div style={{width:'100%',maxWidth:400,margin:'16px auto',padding:16,border:'1px solid #eee',borderRadius:8}}>
-        <div style={{marginBottom:8}}><b>Address:</b></div>
-        <div style={{marginBottom:4}}>{address.line1}</div>
-        <div style={{marginBottom:4}}>{address.city}, {address.state} - {address.pincode}</div>
-        {addressError && <div style={{ color: 'red', marginTop: 8 }}>{addressError}</div>}
-      </div>
+      {showCheckoutTitle && <h2 style={{ textAlign: "center" }}>Checkout</h2>}
+      {!hideAddressCard && (
+        <div style={{ width: "100%", maxWidth: 400, margin: "16px auto", padding: 16, border: "1px solid #eee", borderRadius: 8 }}>
+          <div style={{ marginBottom: 8 }}><b>Address:</b></div>
+          <div style={{ marginBottom: 4 }}>{address.line1}</div>
+          <div style={{ marginBottom: 4 }}>{address.city}, {address.state} - {address.pincode}</div>
+          {addressError && <div style={{ color: "red", marginTop: 8 }}>{addressError}</div>}
+        </div>
+      )}
       <div style={{ marginTop: 16 }}>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 16 }}>
+        {hideAddressCard && addressError && (
+          <div style={{ color: "red", textAlign: "center", marginBottom: 12 }}>{addressError}</div>
+        )}
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 16, flexWrap: "wrap" }}>
           <button
             className={`cart-modern-checkout${selectedPayment === "upi" ? " launching" : ""}`}
             style={{ background: selectedPayment === "upi" ? "#2962ff" : "#eee", color: selectedPayment === "upi" ? "#fff" : "#222" }}
@@ -263,7 +272,7 @@ const Payment = () => {
             Cash on Delivery
           </button>
         </div>
-        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
+        {error && <div style={{ color: "red", marginTop: 8, textAlign: "center" }}>{error}</div>}
       </div>
     </div>
   );
