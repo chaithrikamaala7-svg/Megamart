@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const BACKEND_BASE_URL = String(
-  import.meta.env.VITE_API_BASE_URL || "https://megamart-backend-yj46.onrender.com"
-).replace(/\/$/, "");
-
-const apiUrl = (path) => `${BACKEND_BASE_URL}${path}`;
+import { apiUrl } from "./apiBase";
 
 // Razorpay script loader
 const loadRazorpay = () => {
