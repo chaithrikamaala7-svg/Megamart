@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from "react";
 import "./Home.css";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { apiUrl, assetUrl } from "./apiBase";
 
 function Home() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const handleShopNow = (id) => {
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user"));
+    } catch {}
+    if (!user) {
+      alert("Login first");
+      return;
+    }
+    navigate(`/product/${id}`);
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -64,11 +77,13 @@ function Home() {
                       <h3>{product.name}</h3>
                       <div className="product-price">₹ {product.price}</div>
                       <div className="product-category">{product.category}</div>
-                      <Link to={`/product/${id}`}>
-                        <button className="cta-button" style={{ marginTop: 12 }}>
-                          SHOP NOW
-                        </button>
-                      </Link>
+                      <button
+                        className="cta-button"
+                        style={{ marginTop: 12 }}
+                        onClick={() => handleShopNow(id)}
+                      >
+                        SHOP NOW
+                      </button>
                     </div>
                   </div>
                 );

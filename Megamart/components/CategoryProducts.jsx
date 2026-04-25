@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./CategoryProducts.css";
 import { apiUrl, assetUrl } from "./apiBase";
 
 function CategoryProducts() {
   const { categoryId } = useParams();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,6 +60,18 @@ function CategoryProducts() {
     return assetUrl(imageUrl);
   }
 
+  function handleShopNow(id) {
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user"));
+    } catch {}
+    if (!user) {
+      alert("Login first");
+      return;
+    }
+    navigate(`/product/${id}`);
+  }
+
   return (
     <div className="category-page">
       <div className="category-container">
@@ -77,9 +90,9 @@ function CategoryProducts() {
                 <img src={getImageUrl(product.imageUrl)} alt={product.name} />
                 <p className="category-product-name">{product.name}</p>
                 <p className="category-product-price">Rs. {product.price}</p>
-                <Link to={`/product/${id}`} className="category-shop-link">
-                  <button className="category-shop-btn">Shop Now</button>
-                </Link>
+                <button className="category-shop-btn" onClick={() => handleShopNow(id)}>
+                  Shop Now
+                </button>
               </div>
             )})}
           </div>
