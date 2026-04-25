@@ -74,6 +74,10 @@ function ManageOrder() {
                 const p = order.products[0] || {};
                 const placed = order.emailOnOrder || "skipped";
                 const statusMail = order.emailOnStatus || "skipped";
+                const payment = order.payment || {};
+                const paymentStatus = payment.status || "Pending";
+                const paymentMethod = payment.method || "-";
+                const paymentRef = payment.reference || payment.upiIdMasked || payment.cardLast4 || "";
                
                
                 return (
@@ -106,8 +110,11 @@ function ManageOrder() {
                     </td>
                     <td>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <span>{order.paymentStatus || "-"}</span>
-                        <span style={{ color: "#777", fontSize: 12 }}>{order.paymentId || ""}</span>
+                        <span>{paymentStatus}</span>
+                        <span style={{ color: "#777", fontSize: 12 }}>
+                          {paymentMethod !== "-" ? `${paymentMethod}` : ""}
+                          {paymentRef ? ` | ${paymentRef}` : ""}
+                        </span>
                       </div>
                     </td>
                     <td className="manageorder-email-cell" title={order.emailOnOrderErr || ""}>
