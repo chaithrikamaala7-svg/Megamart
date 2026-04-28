@@ -28,7 +28,16 @@ const Payment = ({ addressOverride = null, hideAddressCard = false, showCheckout
   const [addressError, setAddressError] = useState("");
   const navigate = useNavigate();
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-  const total = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+  // Calculate subtotal and GST for bill
+  let subtotal = 0;
+  let gstTotal = 0;
+  cart.forEach(item => {
+    const price = item.price * (item.quantity || 1);
+    subtotal += price;
+    let gstRate = 0.01; // 1% GST for all products
+    gstTotal += price * gstRate;
+  });
+  const total = subtotal + gstTotal;
   let user = null;
   try {
     user = JSON.parse(localStorage.getItem("user"));
@@ -42,7 +51,8 @@ const Payment = ({ addressOverride = null, hideAddressCard = false, showCheckout
     () => addressOverride || savedAddress,
     [addressOverride, savedAddress]
   );
-  const addressFilled = address.line1 && address.city && address.pincode && address.state;
+  // Require all address fields for validation
+  const addressFilled = address.name && address.mobile && address.house && address.street && address.city && address.pincode && address.state;
 
   const handlePay = async (method) => {
     setSelectedPayment(method);

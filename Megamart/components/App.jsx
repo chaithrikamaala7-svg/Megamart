@@ -1,6 +1,7 @@
 import React from "react";
 import { CartProvider } from "./CartContext";
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+
 import Header from "./Header";
 import Footer from "./Footer";
 import Home from "./Home";
@@ -11,21 +12,27 @@ import Dashboard from "../Admin/Dashboard";
 import AddProduct from "../Admin/AddProduct";
 import ViewProduct from "../Admin/ViewProduct";
 import ManageUser from "../Admin/ManageUser";
+import ManageOrder from "../Admin/ManageOrder";
+
 import CategoryProducts from "./CategoryProducts";
 import SingleProduct from "./SingleProduct";
 import Cart from "./Cart";
 import Address from "./Address";
 import Payment from "./Payment";
-import ManageOrder from "../Admin/ManageOrder";
+import Wishlist from "./Wishlist";
 
 function Layout() {
   const { pathname } = useLocation();
-  const isHome = pathname === "/" || pathname.toLowerCase() === "/home";
+  const lowerPath = pathname.toLowerCase();
+
+  const showHeaderFooter =
+    lowerPath === "/" || lowerPath === "/home";
+
   return (
     <>
-      {isHome && <Header />}
+      {showHeaderFooter && <Header />}
       <Outlet />
-      {isHome && <Footer />}
+      {showHeaderFooter && <Footer />}
     </>
   );
 }
@@ -47,8 +54,10 @@ function App() {
             <Route path="ManageUser" element={<ManageUser />} />
             <Route path="ManageOrder" element={<ManageOrder />} />
             <Route path="category/:categoryId" element={<CategoryProducts />} />
+            <Route path="category/:categoryId/:subcategorySlug" element={<CategoryProducts />} />
             <Route path="product/:productId" element={<SingleProduct />} />
             <Route path="cart" element={<Cart />} />
+            <Route path="wishlist" element={<Wishlist />} />
             <Route path="address" element={<Address />} />
             <Route path="payment" element={<Payment />} />
           </Route>

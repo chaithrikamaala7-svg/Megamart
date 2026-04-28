@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { API_BASE_URL } from "../components/apiBase";
+import { API_BASE_URL, apiUrl } from "../components/apiBase";
+import { subcategories } from "../components/subcategories";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AddProduct.css";
 
@@ -12,6 +13,8 @@ function AddProduct() {
     name: "",
     price: "",
     category: "",
+    subcategory: "",
+    sizes: "",
     description: "",
   });
   const [imageFile, setImageFile] = useState(null);
@@ -25,6 +28,8 @@ function AddProduct() {
         name: editingProduct.name || "",
         price: editingProduct.price || "",
         category: editingProduct.category || "",
+        subcategory: editingProduct.subcategory || "",
+        sizes: Array.isArray(editingProduct.sizes) ? editingProduct.sizes.join(", ") : "",
         description: editingProduct.description || "",
       });
       if (editingProduct.imageUrl) {
@@ -40,6 +45,29 @@ function AddProduct() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    const getDefaultSizes = (categoryValue, subcategoryValue) => {
+      const catKey = String(categoryValue || "").toLowerCase();
+      const subKey = String(subcategoryValue || "").toLowerCase();
+      const subcatOptions = subcategories[catKey] || [];
+      const selected = subcatOptions.find((sub) => sub.name.toLowerCase() === subKey);
+      return selected?.sizes?.join(", ") || "";
+    };
+
+    if (name === "category") {
+      setFormData((prev) => ({
+        ...prev,
+        subcategory: "",
+        sizes: "",
+      }));
+    }
+    if (name === "subcategory") {
+      setFormData((prev) => ({
+        ...prev,
+        subcategory: value,
+        sizes: getDefaultSizes(prev.category, value),
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -59,6 +87,11 @@ function AddProduct() {
       alert("Please fill all required fields.");
       return;
     }
+    // If subcategories exist for the category, require subcategory
+    if (subcategories[formData.category?.toLowerCase()]?.length && !formData.subcategory) {
+      alert("Please select a subcategory.");
+      return;
+    }
     try {
       setSubmitting(true);
       const payload = new FormData();
@@ -66,13 +99,15 @@ function AddProduct() {
       payload.append("price", formData.price);
       payload.append("category", formData.category);
       payload.append("description", formData.description);
+      payload.append("subcategory", formData.subcategory);
+      payload.append("sizes", formData.sizes);
       if (imageFile) {
         payload.append("image", imageFile);
       }
-      const apiUrl = isEditMode
-        ? `/api/products/${editingProduct._id || editingProduct.id}`
-        : "/api/products";
-      const response = await fetch(apiUrl, {
+      const endpointUrl = isEditMode
+        ? apiUrl(`/api/products/${editingProduct._id || editingProduct.id}`)
+        : apiUrl("/api/products");
+      const response = await fetch(endpointUrl, {
         method: isEditMode ? "PUT" : "POST",
         body: payload,
       });
@@ -88,7 +123,7 @@ function AddProduct() {
       if (isEditMode) {
         navigate("/ViewProduct");
       } else {
-        setFormData({ name: "", price: "", category: "", description: "" });
+        setFormData({ name: "", price: "", category: "", subcategory: "", sizes: "", description: "" });
         setImageFile(null);
         setPreviewUrl("");
         navigate("/dashboard");
@@ -124,8 +159,6 @@ function AddProduct() {
 
           <div className="form-group">
             <label htmlFor="category">Category</label>
-           
-           
             <select id="category" name="category" value={formData.category} onChange={handleChange} required>
               <option value="">Select category</option>
               <option value="Men">Men</option>
@@ -136,9 +169,29 @@ function AddProduct() {
               <option value="Accessories">Accessories</option>
               <option value="Winterwear">Winterwear</option>
               <option value="Brands">Brands</option>
-          
-          
             </select>
+          </div>
+          {formData.category && subcategories[formData.category.toLowerCase()] && (
+            <div className="form-group">
+              <label htmlFor="subcategory">Subcategory</label>
+              <select id="subcategory" name="subcategory" value={formData.subcategory} onChange={handleChange} required>
+                <option value="">Select subcategory</option>
+                {subcategories[formData.category.toLowerCase()].map((sub) => (
+                  <option key={sub.name} value={sub.name}>{sub.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="form-group">
+            <label htmlFor="sizes">Sizes (comma separated)</label>
+            <input
+              id="sizes"
+              type="text"
+              name="sizes"
+              value={formData.sizes}
+              onChange={handleChange}
+              placeholder="Ex: S, M, L, XL, XXL or 26, 28, 30, 32"
+            />
           </div>
           
           

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CategoryProducts.css";
 import { apiUrl, assetUrl } from "./apiBase";
+import { subcategories } from "./subcategories";
 
 function CategoryProducts() {
-  const { categoryId } = useParams();
+  const { categoryId, subcategorySlug } = useParams();
   const navigate = useNavigate();
+  const [allCategoryProducts, setAllCategoryProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,6 +28,14 @@ function CategoryProducts() {
 
   const categoryLabel = categories[categoryId] || "";
 
+  function normalizeText(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function toSlug(value) {
+    return normalizeText(value).replace(/\s+/g, "-");
+  }
+
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -35,12 +45,19 @@ function CategoryProducts() {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to fetch products");
         const allProducts = Array.isArray(data) ? data : [];
-        const filtered = allProducts.filter(
-          (p) => String(p.category || "").trim().toLowerCase() === categoryLabel.toLowerCase()
+        const filteredByCategory = allProducts.filter(
+          (p) => normalizeText(p.category) === normalizeText(categoryLabel)
         );
+        const filtered = subcategorySlug
+          ? filteredByCategory.filter(
+              (p) => toSlug(p.subcategory) === normalizeText(subcategorySlug)
+            )
+          : filteredByCategory;
+        setAllCategoryProducts(filteredByCategory);
         setProducts(filtered);
       } catch (err) {
         setError(err.message || "Could not load products");
+        setAllCategoryProducts([]);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -49,11 +66,12 @@ function CategoryProducts() {
     if (categoryLabel) {
       fetchProducts();
     } else {
+      setAllCategoryProducts([]);
       setProducts([]);
       setLoading(false);
       setError("Invalid category");
     }
-  }, [categoryLabel]);
+  }, [categoryLabel, subcategorySlug]);
 
   function getImageUrl(imageUrl) {
     if (!imageUrl) return "/images/head.png";
@@ -72,10 +90,73 @@ function CategoryProducts() {
     navigate(`/product/${id}`);
   }
 
+  // Get subcategories for this category
+  // Show subcategories in the order they are in the array (first added = first shown)
+  const subcats = (subcategories[categoryId?.toLowerCase()] || []).slice();
+  const subcatsWithImage = useMemo(
+    () =>
+      subcats.map((sub) => {
+        const matchingProducts = allCategoryProducts.filter(
+          (product) =>
+            normalizeText(product.subcategory) === normalizeText(sub.name) &&
+            Boolean(product.imageUrl)
+        );
+
+        const firstAddedProduct = matchingProducts.reduce((oldest, current) => {
+          if (!oldest) return current;
+          const oldestTime = Number(new Date(oldest.createdAt));
+          const currentTime = Number(new Date(current.createdAt));
+          if (!Number.isFinite(oldestTime)) return current;
+          if (!Number.isFinite(currentTime)) return oldest;
+          return currentTime < oldestTime ? current : oldest;
+        }, null);
+
+        return {
+          ...sub,
+          displayImage: firstAddedProduct?.imageUrl
+            ? getImageUrl(firstAddedProduct.imageUrl)
+            : sub.img,
+        };
+      }),
+    [allCategoryProducts, subcats]
+  );
+  const selectedSubcategory = subcatsWithImage.find(
+    (sub) => toSlug(sub.name) === normalizeText(subcategorySlug)
+  );
+
   return (
     <div className="category-page">
       <div className="category-container">
-        <h2>{categoryLabel || "Category"}</h2>
+        {/* Animated section heading */}
+        <div className="category-animated-heading">
+          <span className="category-animated-text">{categoryLabel || "Category"} Section</span>
+        </div>
+        {selectedSubcategory && (
+          <div className="category-subcat-hero">
+            <img
+              src={selectedSubcategory.displayImage}
+              alt={selectedSubcategory.name}
+              className="category-subcat-hero-img"
+            />
+          </div>
+        )}
+        {/* Subcategory images row */}
+        {!subcategorySlug && subcatsWithImage.length > 0 && (
+          <div className="category-subcat-row">
+            {subcatsWithImage.map((sub) => (
+              <div
+                key={sub.name}
+                className="category-subcat-card"
+                onClick={() => navigate(`/category/${categoryId}/${sub.name.toLowerCase().replace(/\s+/g, "-")}`)}
+                style={{cursor:'pointer'}}
+              >
+                <img src={sub.displayImage} alt={sub.name} className="category-subcat-img" />
+                <div className="category-subcat-label">{sub.name}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Products grid below subcategories */}
         {loading && <p className="category-state">Loading products...</p>}
         {error && <p className="category-state category-error">{error}</p>}
         {!loading && !error && products.length === 0 && (

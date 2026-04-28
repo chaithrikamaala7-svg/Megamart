@@ -15,6 +15,14 @@ const productSchema = new mongoose.Schema(
       required: true 
 
     },
+    subcategory: {
+      type: String,
+      default: "",
+    },
+    sizes: {
+      type: [String],
+      default: [],
+    },
     description: 
     { type: String },
     imageUrl: 

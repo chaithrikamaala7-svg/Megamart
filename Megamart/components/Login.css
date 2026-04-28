@@ -25,6 +25,47 @@
             height: 34px;
         }
 
+        .otp-divider {
+            margin: 14px 0;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #666;
+        }
+
+        .dial-code-input {
+            width: 350px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #999;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .dial-code {
+            min-width: 48px;
+            text-align: center;
+            font-weight: 600;
+            color: #222;
+            border-right: 1px solid #ddd;
+            padding: 7px 8px;
+            background: #f7f7f7;
+        }
+
+        .dial-code-edit {
+            border: none;
+            outline: none;
+            width: 64px;
+        }
+
+        .dial-code-input input {
+            width: 100%;
+            border: none !important;
+            outline: none;
+            padding: 8px 10px;
+        }
+
         .main-box {
             width: 800px;
             min-height: 520px;

@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 import { apiUrl } from "./apiBase";
 
+
 function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,6 +42,28 @@ function Login() {
     }
   };
 
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setForgotMsg("");
+    if (!forgotEmail) return setForgotMsg("Enter your registered email");
+    try {
+      setForgotMsg("Sending reset link...");
+      const resp = await fetch(apiUrl("/api/users/forgot-password"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data && data.success) {
+        setForgotMsg("Reset link sent to your email.");
+      } else {
+        setForgotMsg((data && data.error) || "Failed to send reset link");
+      }
+    } catch (err) {
+      setForgotMsg(err.message);
+    }
+  };
+
   return (
     <center>
       <div className="container">
@@ -55,10 +81,10 @@ function Login() {
                 <label htmlFor="username">Email</label>
                 <br />
                 <input
-                  type="text"
+                  type="email"
                   id="username"
                   name="username"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -81,6 +107,31 @@ function Login() {
                 <button className="button" type="submit" disabled={isLoading}>
                   {isLoading ? "LOGGING IN..." : "LOGIN"}
                 </button>
+                <div style={{ marginTop: 10, textAlign: "right" }}>
+                  <span
+                    style={{ color: "#1976d2", cursor: "pointer", fontSize: 14 }}
+                    onClick={() => setShowForgot((v) => !v)}
+                  >
+                    Forgot Password?
+                  </span>
+                </div>
+                {showForgot && (
+                  <form onSubmit={handleForgot} style={{ marginTop: 12, textAlign: "left" }}>
+                    <label htmlFor="forgotEmail">Enter your registered email:</label>
+                    <input
+                      type="email"
+                      id="forgotEmail"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      style={{ width: "100%", margin: "8px 0", padding: 6 }}
+                      required
+                    />
+                    <button type="submit" className="button" style={{ width: "100%", marginBottom: 6 }}>
+                      Send Reset Link
+                    </button>
+                    {forgotMsg && <div style={{ color: forgotMsg.startsWith("Reset link") ? "green" : "red", fontSize: 13 }}>{forgotMsg}</div>}
+                  </form>
+                )}
                 <p style={{ marginTop: 16 }}>
                   Don&apos;t have an account?{" "}
                   <Link to="/signup">

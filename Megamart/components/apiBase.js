@@ -6,7 +6,15 @@ const configuredBase =
   baseUrl ||
   "http://localhost:3001";
 
-export const API_BASE_URL = String(configuredBase).replace(/\/$/, "");
+const isLocalHost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+const localDevBase = import.meta.env.VITE_API_LOCAL_URL || "http://localhost:3001";
+const resolvedBase =
+  import.meta.env.DEV && isLocalHost ? localDevBase : configuredBase;
+
+export const API_BASE_URL = String(resolvedBase).replace(/\/$/, "");
 
 export function apiUrl(path) {
   if (!path) return API_BASE_URL;

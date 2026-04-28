@@ -1,5 +1,7 @@
 import "./Header.css";
 import { useState, useEffect } from "react";
+import { subcategories } from "./subcategories";
+import "./subcategory.css";
 import { Link, useNavigate } from "react-router-dom";
 import { apiUrl } from "./apiBase";
 
@@ -8,6 +10,7 @@ function Header() {
   const [searchPlaceholder, setSearchPlaceholder] = useState("Search: Trouser");
   const searchTerms = ["Trouser", "Men", "Women", "Winterwear", "Sneaker"];
   const [searchIndex, setSearchIndex] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -19,6 +22,25 @@ function Header() {
   useEffect(() => {
     setSearchPlaceholder(`Search: ${searchTerms[searchIndex]}`);
   }, [searchIndex]);
+
+  useEffect(() => {
+    const updateWishlistCount = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("wishlist") || "[]");
+        setWishlistCount(Array.isArray(stored) ? stored.length : 0);
+      } catch {
+        setWishlistCount(0);
+      }
+    };
+
+    updateWishlistCount();
+    window.addEventListener("storage", updateWishlistCount);
+    window.addEventListener("wishlist-updated", updateWishlistCount);
+    return () => {
+      window.removeEventListener("storage", updateWishlistCount);
+      window.removeEventListener("wishlist-updated", updateWishlistCount);
+    };
+  }, []);
 
   let user = null;
   if (typeof window !== "undefined") {
@@ -47,6 +69,12 @@ function Header() {
     }
     navigate("/home");
   };
+
+  // Track which category is hovered for subcategory dropdown
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+
+  const handleCategoryMouseEnter = (cat) => setHoveredCategory(cat);
+  const handleCategoryMouseLeave = () => setHoveredCategory(null);
 
   return (
     <header>
@@ -92,9 +120,10 @@ function Header() {
           <button className="icon-btn" title="location">
             <img src="/images/loc.svg" alt="location" />
           </button>
-          <button className="icon-btn" title="wishlist">
+          <Link className="icon-btn wishlist-icon-btn" to="/wishlist" title="wishlist">
             <img src="/images/fav.svg" alt="wishlist" />
-          </button>
+            {wishlistCount > 0 && <span className="wishlist-count">{wishlistCount}</span>}
+          </Link>
           <button className="icon-btn" title="cart">
             <Link className="icon-btn" to="/cart" title="cart">
               <img src="/images/cart.svg" alt="cart" />
@@ -104,19 +133,48 @@ function Header() {
       </div>
       <nav className="navbar">
         <ul className="nav-menu">
-          <li>
+          <li onMouseEnter={() => handleCategoryMouseEnter("men")} onMouseLeave={handleCategoryMouseLeave} style={{position:'relative'}}>
             <Link to="/category/men">Men</Link>
+            {hoveredCategory === "men" && (
+              <div className="subcategory-dropdown">
+                {subcategories.men.map((sub) => (
+                  <Link key={sub.name} to={`/category/men/${sub.name.toLowerCase().replace(/\s+/g, "-")}`} className="subcategory-link">
+                    <img src={sub.img} alt={sub.name} className="subcategory-img" style={{width:32,height:32,objectFit:'cover',marginRight:8}} />
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </li>
-          <li>
+          <li onMouseEnter={() => handleCategoryMouseEnter("women")} onMouseLeave={handleCategoryMouseLeave} style={{position:'relative'}}>
             <Link to="/category/women">Women</Link>
+            {hoveredCategory === "women" && (
+              <div className="subcategory-dropdown">
+                {subcategories.women.map((sub) => (
+                  <Link key={sub.name} to={`/category/women/${sub.name.toLowerCase().replace(/\s+/g, "-")}`} className="subcategory-link">
+                    <img src={sub.img} alt={sub.name} className="subcategory-img" style={{width:32,height:32,objectFit:'cover',marginRight:8}} />
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </li>
-          <li>
+          <li onMouseEnter={() => handleCategoryMouseEnter("kids")} onMouseLeave={handleCategoryMouseLeave} style={{position:'relative'}}>
             <Link to="/category/kids">Kids</Link>
+            {hoveredCategory === "kids" && (
+              <div className="subcategory-dropdown">
+                {subcategories.kids.map((sub) => (
+                  <Link key={sub.name} to={`/category/kids/${sub.name.toLowerCase().replace(/\s+/g, "-")}`} className="subcategory-link">
+                    <img src={sub.img} alt={sub.name} className="subcategory-img" style={{width:32,height:32,objectFit:'cover',marginRight:8}} />
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </li>
           <li>
             <Link to="/category/footwear">Footwear</Link>
           </li>
-          
           <li>
             <Link to="/category/accessories">Accessories</Link>
           </li>
@@ -126,7 +184,6 @@ function Header() {
           <li>
             <Link to="/category/brands">Brands</Link>
           </li>
-          
         </ul>
       </nav>
       <div className="promo-badges-section">
