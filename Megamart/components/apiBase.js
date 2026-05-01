@@ -41,3 +41,6 @@ export function assetUrl(imageUrl) {
   return u;
 }
 
+// Example
+export const apiUrl = (path) => `https://your-backend-url.com${path}`;
+

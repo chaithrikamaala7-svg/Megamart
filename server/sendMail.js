@@ -1,5 +1,14 @@
 const nodemailer = require('nodemailer');
 
+const transport = nodemailer.createTransport({
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  auth: {
+    user: 'apikey', // This is literally the string 'apikey'
+    pass: process.env.SENDGRID_API_KEY, // Your SendGrid API key
+  },
+});
+
 function isValidEmail(value) {
   const email = String(value || '').trim().toLowerCase();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -28,10 +37,6 @@ async function sendOrderNotify(subject, text, customerEmail, html) {
   }
 
   try {
-    const transport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
-    });
     await transport.sendMail({
       from: `"Megamart" <${user}>`,
       to: recipients.join(','),
@@ -71,11 +76,6 @@ async function sendOtpMail(recipientEmail, otpCode) {
   }
 
   try {
-    const transport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
-    });
-    console.log('Transport created, sending mail...');
     await transport.sendMail({
       from: `"Megamart" <${user}>`,
       to,
