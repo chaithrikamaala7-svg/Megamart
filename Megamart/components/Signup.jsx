@@ -17,7 +17,7 @@ function Signup() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isSuccessMessage = message.toLowerCase().includes("account created");
+  const isSuccessMessage = message.toLowerCase().includes("account created") || message.toLowerCase().includes("otp sent successfully");
 
   const getNormalizedInputs = () => {
     const email = String(username).trim().toLowerCase();
@@ -77,8 +77,7 @@ function Signup() {
       });
       const data = await resp.json();
       if (resp.ok && data?.success) {
-        const devOtpSuffix = data.devOtp ? ` OTP: ${data.devOtp}` : "";
-        setMessage(`OTP sent successfully.${devOtpSuffix}`);
+        setMessage("OTP sent successfully.");
       } else {
         setMessage(data?.error || "Failed to send OTP");
       }

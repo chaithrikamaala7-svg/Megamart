@@ -16,7 +16,7 @@ const OrdersRouter = require("./routes/orders");
 const PaymentsRouter = require("./routes/payments");
 
 const app = express();
-// Allow requests from configured frontends and Vercel preview domains
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
@@ -181,22 +181,46 @@ app.post("/api/signup-otp/request", async (req, res) => {
     const { sendOtpSms } = require("./sendSms");
     const smsNumber = dialCodeDigits === "91" ? phone : `${dialCodeDigits}${phone}`;
     const smsResult = await sendOtpSms(smsNumber, otp, "signup");
-    if (!smsResult.ok) {
-      // Always provide dev fallback OTP when SMS config is missing/failing,
-      // so signup verification can continue in local/testing environments.
-      return res.json({
-        success: true,
-        message: "SMS failed. Using generated OTP for verification.",
-        mobileMasked: phone.replace(/(\d{2})\d{6}(\d{2})/, "$1******$2"),
-        devOtp: otp,
-      });
+
+    // Send OTP via Email
+    let emailResult = { ok: false };
+    try {
+      emailResult = await sendOtpMail(email, otp);
+    } catch (e) {
+      emailResult = { ok: false, reason: e.message };
     }
 
-    return res.json({
+    if (!smsResult.ok && !emailResult.ok) {
+      // Both failed
+      const response = {
+        success: true,
+        message: "SMS/Email failed. Using generated OTP for verification.",
+        mobileMasked: phone.replace(/(\d{2})\d{6}(\d{2})/, "$1******$2"),
+      };
+      if (process.env.NODE_ENV !== 'production') {
+        response.devOtp = otp;
+      }
+      return res.json(response);
+    }
+
+    let msg = "";
+    if (smsResult.ok && emailResult.ok) {
+      msg = "OTP sent to your mobile number and email.";
+    } else if (smsResult.ok) {
+      msg = "OTP sent to your mobile number.";
+    } else if (emailResult.ok) {
+      msg = "OTP sent to your email.";
+    }
+
+    const response = {
       success: true,
-      message: "OTP sent to your mobile number",
+      message: msg,
       mobileMasked: phone.replace(/(\d{2})\d{6}(\d{2})/, "$1******$2"),
-    });
+    };
+    if (process.env.NODE_ENV !== 'production') {
+      response.devOtp = otp;
+    }
+    return res.json(response);
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -526,4 +550,6 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// PDF and email route removed (sendPdf.js deleted)
 

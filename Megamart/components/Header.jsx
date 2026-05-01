@@ -65,12 +65,12 @@ function Header() {
         return;
       }
     } catch {
-      // ignore and fall back
+     
     }
     navigate("/home");
   };
 
-  // Track which category is hovered for subcategory dropdown
+  
   const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const handleCategoryMouseEnter = (cat) => setHoveredCategory(cat);

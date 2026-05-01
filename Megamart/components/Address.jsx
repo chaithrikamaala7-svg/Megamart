@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import Payment from "./Payment";
 
 const Address = () => {
-
   const [address, setAddress] = useState({
     name: "",
     mobile: "",
+    email: "",
     house: "",
     street: "",
     city: "",
@@ -13,21 +13,23 @@ const Address = () => {
     state: ""
   });
 
+  // Removed emailError, sending, successMsg state for PDF button
+
   const handleAddressChange = (key, value) => {
     const next = { ...address, [key]: value };
     setAddress(next);
     localStorage.setItem("checkout_address", JSON.stringify(next));
   };
 
+  // Removed validateEmail and handleSendPdf (PDF is sent after payment)
 
-  // Bill calculation logic
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
   let subtotal = 0;
   let gstTotal = 0;
   cart.forEach(item => {
     const price = item.price * (item.quantity || 1);
     subtotal += price;
-    let gstRate = 0.01; // 1% GST for all products
+    let gstRate = 0.01; 
     gstTotal += price * gstRate;
   });
   const delivery = 0; // Free delivery
@@ -43,6 +45,7 @@ const Address = () => {
         >
           <input type="text" placeholder="Full Name" value={address.name} onChange={e => handleAddressChange("name", e.target.value)} style={{ padding: 8 }} required />
           <input type="tel" placeholder="Mobile Number" value={address.mobile} onChange={e => handleAddressChange("mobile", e.target.value)} style={{ padding: 8 }} required />
+          <input type="email" placeholder="Email Address" value={address.email || ""} onChange={e => handleAddressChange("email", e.target.value)} style={{ padding: 8 }} required />
           <input type="text" placeholder="House/Flat No." value={address.house} onChange={e => handleAddressChange("house", e.target.value)} style={{ padding: 8 }} required />
           <input type="text" placeholder="Street/Area" value={address.street} onChange={e => handleAddressChange("street", e.target.value)} style={{ padding: 8 }} required />
           <input type="text" placeholder="City" value={address.city} onChange={e => handleAddressChange("city", e.target.value)} style={{ padding: 8 }} required />
@@ -58,7 +61,7 @@ const Address = () => {
             <span>₹{subtotal.toFixed(2)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span>GST</span>
+            <span>Tax</span>
             <span>₹{gstTotal.toFixed(2)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>

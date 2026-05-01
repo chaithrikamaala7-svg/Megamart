@@ -97,7 +97,7 @@ const Payment = ({ addressOverride = null, hideAddressCard = false, showCheckout
       return;
     }
 
-    // ✅ ONLINE PAYMENT FLOW (Razorpay for card, upi, netbanking)
+   
     setIsPaying(true);
     try {
       const loaded = await loadRazorpay();
@@ -174,6 +174,20 @@ const Payment = ({ addressOverride = null, hideAddressCard = false, showCheckout
             if (!placeRes.ok) {
               const data = await placeRes.json().catch(() => ({}));
               throw new Error(data.error || "Failed to save order after payment");
+            }
+
+            // Send bill PDF after order placement
+            try {
+              await fetch("/api/send-pdf", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: customerEmail || address.email,
+                  address,
+                }),
+              });
+            } catch (e) {
+              // Optionally log or ignore
             }
 
             localStorage.removeItem("cart");

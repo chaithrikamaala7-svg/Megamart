@@ -20,7 +20,8 @@ function Dashboard() {
     
         <button title="Manage Order" onClick={() => navigate("/ManageOrder")} className="btn"> Manage Order</button>
        
-      
+        <button title="View Analytics" onClick={() => navigate("/ViewAnalytics")} className="btn"> View Analytics</button>
+       
       </div>
     </div>
   );

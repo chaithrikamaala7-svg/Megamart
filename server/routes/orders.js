@@ -198,23 +198,154 @@ router.post('/', async (req, res) => {
     }
 
     // Send detailed order summary email (same details visible in Manage Order).
+    const mailText = buildOrderMailText(order, 'Your order has been placed successfully.', {
+      name: customerName,
+      email: customerEmail || '-',
+      mobile: customerMobile,
+    });
+    const mailHtml = buildOrderMailHtml(order, 'Your order has been placed successfully.', {
+      name: customerName,
+      email: customerEmail || '-',
+      mobile: customerMobile,
+    });
     const mr = await sendOrderNotify(
       `Megamart: order ${order._id} placed`,
-      buildOrderMailText(order, 'Your order has been placed successfully.', {
-        name: customerName,
-        email: customerEmail || '-',
-        mobile: customerMobile,
-      }),
+      mailText,
       customerEmail,
-      buildOrderMailHtml(order, 'Your order has been placed successfully.', {
-        name: customerName,
-        email: customerEmail || '-',
-        mobile: customerMobile,
-      })
+      mailHtml
     );
     const em = mapMailResult(mr);
     if (!mr.ok) {
       console.warn('[mail] Order created, notify failed/skipped:', em.err || em.status);
+    }
+
+    // Generate and send PDF using pdfkit (redesigned to match provided order confirmation style)
+    try {
+      const PDFDocument = require('pdfkit');
+      const nodemailer = require('nodemailer');
+      const stream = require('stream');
+      const doc = new PDFDocument({ margin: 40 });
+      const passthrough = new stream.PassThrough();
+      let pdfBuffers = [];
+      passthrough.on('data', (chunk) => pdfBuffers.push(chunk));
+      passthrough.on('end', async () => {
+        const pdfData = Buffer.concat(pdfBuffers);
+        const user = process.env.SMTP_EMAIL || 'Megamart';
+        const pass = process.env.SMTP_PASSWORD || '';
+        if (customerEmail && user && pass) {
+          let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user, pass },
+          });
+          try {
+            await transporter.sendMail({
+              from: `"Megamart" <${user}>`,
+              to: customerEmail,
+              subject: `Your Megamart Order PDF - ${order._id}`,
+              text: 'Attached is your order summary PDF.',
+              attachments: [
+                {
+                  filename: 'order.pdf',
+                  content: pdfData,
+                },
+              ],
+            });
+            console.log('Order PDF sent to:', customerEmail);
+          } catch (emailErr) {
+            console.error('Order PDF email send error:', emailErr);
+          }
+        }
+      });
+      doc.pipe(passthrough);
+
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').text('MEGAMART', { align: 'left' });
+      doc.fontSize(10).font('Helvetica').text('Shop More, Save More', { align: 'left' });
+      doc.fontSize(16).font('Helvetica-Bold').text('ORDER CONFIRMATION', 0, 40, { align: 'right' });
+      doc.fontSize(10).font('Helvetica').text(`Order Date : ${new Date().toLocaleDateString('en-GB')}`, 0, 60, { align: 'right' });
+      doc.fontSize(10).font('Helvetica').text(`Order ID   : ${order._id}`, 0, 75, { align: 'right' });
+      doc.moveDown(2);
+      doc.moveTo(40, doc.y).lineTo(555, doc.y).strokeColor('#bbb').stroke();
+      doc.moveDown(1.5);
+
+      // Thank you section with checkmark
+      const checkY = doc.y;
+     
+      doc.fontSize(16).font('Helvetica-Bold').text('Thank you for your order!', 90, checkY + 8);
+      doc.fontSize(11).font('Helvetica').text('Your order has been placed successfully.\nWe will notify you once your order is shipped.', 90, checkY + 28);
+      doc.moveDown(2.5);
+
+      // Customer and Shipping Details
+      const leftX = 40, rightX = 320, sectionY = doc.y;
+      doc.fontSize(12).font('Helvetica-Bold').text('CUSTOMER DETAILS', leftX, sectionY);
+      doc.fontSize(12).font('Helvetica-Bold').text('SHIPPING ADDRESS', rightX, sectionY);
+      doc.font('Helvetica').fontSize(11);
+      doc.text(`Name   : ${customerName}`, leftX, sectionY + 18);
+      doc.text(`Email  : ${customerEmail || '-'}`, leftX, sectionY + 33);
+      doc.text(`Mobile : ${customerMobile}`, leftX, sectionY + 48);
+      doc.text(`${customerName}`, rightX, sectionY + 18);
+      doc.text('123, 5th Cross, MG Road,', rightX, sectionY + 33); // Placeholder, replace with real address if available
+      doc.text('Bangalore, Karnataka - 560001', rightX, sectionY + 48);
+      doc.text('India', rightX, sectionY + 63);
+      doc.moveDown(5);
+
+      // Order Summary Table
+      doc.fontSize(12).font('Helvetica-Bold').text('ORDER SUMMARY', leftX, doc.y);
+      doc.moveDown(0.5);
+      const tableTop = doc.y;
+      const col = [leftX, leftX + 30, leftX + 220, leftX + 320, leftX + 400];
+      doc.font('Helvetica-Bold').fontSize(11);
+      doc.text('#', col[0], tableTop, { width: 20 });
+      doc.text('Item', col[1], tableTop, { width: 180 });
+      doc.text('Quantity', col[2], tableTop, { width: 60, align: 'right' });
+      doc.text('Unit Price', col[3], tableTop, { width: 70, align: 'right' });
+      doc.text('Total Price', col[4], tableTop, { width: 70, align: 'right' });
+      doc.font('Helvetica').fontSize(11);
+      let y = tableTop + 18;
+      let subtotal = 0;
+      (order.products || []).forEach((p, idx) => {
+        const total = (p.price || 0) * (p.quantity || 1);
+        subtotal += total;
+        doc.text(String(idx + 1), col[0], y, { width: 20 });
+        doc.text(`${p.name}}`, col[1], y, { width: 180 });
+        doc.text(String(p.quantity || 1), col[2], y, { width: 60, align: 'right' });
+        doc.text(`₹${p.price}`, col[3], y, { width: 70, align: 'right' });
+        doc.text(`₹${total.toFixed(2)}`, col[4], y, { width: 70, align: 'right' });
+        y += 28;
+      });
+      y += 5;
+      doc.font('Helvetica').fontSize(11);
+      doc.text('Subtotal', col[3], y, { width: 70, align: 'right' });
+      doc.text(`₹${subtotal.toFixed(2)}`, col[4], y, { width: 70, align: 'right' });
+      y += 18;
+      doc.text('Shipping ', col[3], y, { width: 70, align: 'right' });
+      doc.text('₹0.00', col[4], y, { width: 70, align: 'right' });
+      y += 18;
+      const gst = subtotal * 0.05;
+      doc.text('GST (5%)', col[3], y, { width: 70, align: 'right' });
+      doc.text(`₹${gst.toFixed(2)}`, col[4], y, { width: 70, align: 'right' });
+      y += 18;
+      doc.font('Helvetica-Bold').text('TOTAL AMOUNT', col[3], y, { width: 70, align: 'right' });
+      doc.font('Helvetica-Bold').text(`₹${(subtotal + gst).toFixed(2)}`, col[4], y, { width: 70, align: 'right' });
+      doc.moveDown(3);
+
+      // Payment Details
+      doc.fontSize(12).font('Helvetica-Bold').text('PAYMENT DETAILS', leftX, doc.y);
+      doc.font('Helvetica').fontSize(11);
+      const payment = order.payment || {};
+      doc.text(`Payment Method : ${payment.method || '-'}`, leftX, doc.y + 15);
+      doc.text(`Transaction ID : ${payment.reference || '-'}`, leftX, doc.y + 20);
+      doc.text(`Payment Status : ${payment.status || 'Pending'}`, leftX, doc.y + 25, { fill: payment.status === 'Paid' ? '#4CAF50' : '#000' });
+
+      
+
+      
+      doc.moveDown(1);
+      doc.fontSize(8).font('Helvetica').text('Megamart Retail Pvt. Ltd.   |   123, Megamart Corporate Park, Bangalore, Karnataka - 560001, India   |   www.megamart.com', { align: 'center' });
+
+      doc.end();
+    } catch (pdfErr) {
+      console.error('Order PDF generation error:', pdfErr);
     }
     order = await Order.findByIdAndUpdate(
       order._id,
